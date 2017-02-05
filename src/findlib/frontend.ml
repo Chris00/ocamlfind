@@ -1812,7 +1812,10 @@ let copy_file ?(rename = (fun name -> name)) ?(append = "") src dstdir =
       output_string ch_out append;
       close_out ch_out;
       close_in ch_in;
-      Unix.utimes outpath s.Unix.st_mtime s.Unix.st_mtime;
+      (try Unix.utimes outpath s.Unix.st_mtime s.Unix.st_mtime
+       with Unix.Unix_error(e,_,_) ->
+         prerr_endline("Warning: setting utimes for " ^ outpath
+                       ^ ": " ^ Unix.error_message e));
 
       prerr_endline("Installed " ^ outpath);
     with
