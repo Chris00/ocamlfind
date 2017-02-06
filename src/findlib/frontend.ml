@@ -2221,6 +2221,15 @@ let install_package () =
 
 let reserved_names = [ Findlib_config.libexec_name; "postinstall"; "postremove" ];;
 
+(* We may need to remove files on which we do not have complete control.
+   On Windows, removing a read-only file fails so try to change the
+   mode of the file first. *)
+let remove_file fname =
+  try Sys.remove fname
+  with Sys_error _ ->
+    Unix.chmod fname 0o666;
+    Sys.remove fname
+
 let remove_package () =
   let destdir = ref (default_location()) in
   let destdir_set = ref false in
@@ -2297,7 +2306,7 @@ let remove_package () =
     List.iter
       (fun file ->
 	 let absfile = Filename.concat dlldir file in
-	 Sys.remove absfile;
+	 remove_file absfile;
 	 prerr_endline ("Removed " ^ absfile)
       )
       dll_files
@@ -2306,7 +2315,7 @@ let remove_package () =
   (* Remove the files from the package directory: *)
   if Sys.file_exists pkgdir then begin
     let files = Sys.readdir pkgdir in
-    Array.iter (fun f -> Sys.remove (Filename.concat pkgdir f)) files;
+    Array.iter (fun f -> remove_file (Filename.concat pkgdir f)) files;
     Unix.rmdir pkgdir;
     prerr_endline ("Removed " ^ pkgdir)
   end
@@ -2586,6 +2595,10 @@ let main() =
       exit 2
   | Sys_error f ->
       prerr_endline ("ocamlfind: " ^ f);
+      exit 2
+  | Unix.Unix_error (e, fn, f) ->
+      prerr_endline ("ocamlfind: " ^ fn ^ " " ^ f
+                     ^ ": " ^ Unix.error_message e);
       exit 2
   | Findlib.No_such_package(pkg,info) ->
       prerr_endline ("ocamlfind: Package `" ^ pkg ^ "' not found" ^
