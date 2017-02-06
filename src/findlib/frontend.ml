@@ -1498,7 +1498,7 @@ let ocamldoc() =
   end;
 
   if !pp_specified && !syntax_preds <> [] then
-    prerr_endline("Warning: -pp overrides the effect of -syntax partly");
+    prerr_endline("[WARNING] -pp overrides the effect of -syntax partly");
 
   let pp_command =
     if !pp_specified then
@@ -1677,7 +1677,7 @@ let ocamldep () =
 		  String.concat "," !syntax_preds ^ "\n");
 
   if !pp_specified && !syntax_preds <> [] then
-    prerr_endline("Warning: -pp overrides the effect of -syntax partly");
+    prerr_endline("[WARNING] -pp overrides the effect of -syntax partly");
 
   let pp_command =
     if !pp_specified then
@@ -1814,7 +1814,7 @@ let copy_file ?(rename = (fun name -> name)) ?(append = "") src dstdir =
       close_in ch_in;
       (try Unix.utimes outpath s.Unix.st_mtime s.Unix.st_mtime
        with Unix.Unix_error(e,_,_) ->
-         prerr_endline("Warning: setting utimes for " ^ outpath
+         prerr_endline("[WARNING] setting utimes for " ^ outpath
                        ^ ": " ^ Unix.error_message e));
 
       prerr_endline("Installed " ^ outpath);
